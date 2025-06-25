@@ -325,6 +325,7 @@
                         success: function() {
                             toastr.success('User created successfully!');
                             setTimeout(() => {
+                                
                                 window.location.href = "/users";
                             }, 1500);
                         },
