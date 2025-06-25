@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Usercontroller;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
+Route::post('/store-users', [UserController::class, 'store'])->name('users.store');
+Route::get('/get-states/{country_id}', [UserController::class, 'getStates']);
+Route::get('/get-cities/{state_id}', [UserController::class, 'getCities']);
