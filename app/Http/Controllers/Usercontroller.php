@@ -175,14 +175,12 @@ public function update(Request $request, $id)
 
 public function destroy($id)
 {
-    $user = User::findOrFail($id);
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+    }
     $user->delete();
-
-    return response()->json([
-        'status' => 200,
-        'message' => 'User deleted successfully',
-        
-    ]);
+    return response()->json(['success' => true, 'message' => 'User deleted successfully.']);
 }
 
 

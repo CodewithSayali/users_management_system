@@ -46,21 +46,9 @@
                             <td>{{ $user->gender == 1 ? 'Male' : ($user->gender == 2 ? 'Female' : 'Other') }}</td>
                             <td>
                                 <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                {{-- <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display: inline;"> --}}
-                                {{-- @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm" 
-                                    onClick="return confirm('Are you sure?')">Delete</button>
-                        </form> --}}
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                    style="display:inline;" id="delete-form-{{ $user->id }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-danger btn-sm"
-                                        onClick="confirmDelete({{ $user->id }})">
-                                        Delete
-                                    </button>
-                                </form>
+                
+                                <button type="button" class="btn btn-danger btn-sm delete-user" data-id="{{ $user->id }}">
+                                Delete</button>
 
                             </td>
                         </tr>
@@ -92,13 +80,38 @@
         });
     </script>
 
-    <script>
-        function confirmDelete(userId) {
+   <script>
+    $(document).ready(function () {
+        // Handle delete button click
+        $('.delete-user').on('click', function () {
+            var userId = $(this).data('id');
+            var row = $(this).closest('tr');
+
             if (confirm("Are you sure you want to delete this user?")) {
-                document.getElementById('delete-form-' + userId).submit();
+                $.ajax({
+                    url: '/users/' + userId,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            // Remove the row from DataTable
+                            $('#userTable').DataTable().row(row).remove().draw();
+                        } else {
+                            alert("Failed to delete user.");
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("An error occurred while deleting the user.");
+                    }
+                });
             }
-        }
-    </script>
+        });
+    });
+</script>
+
 
 </body>
 
