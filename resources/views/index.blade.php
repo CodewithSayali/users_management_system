@@ -11,7 +11,7 @@
 <body class="bg-light">
 
     <div class="container mt-5">
-        <form id="user-form" method="POST" enctype="multipart/form-data">
+        <form method="POST" id="user-form" enctype="multipart/form-data">
             @csrf
 
             <h4 class="mb-4">User Details</h4>
@@ -27,6 +27,10 @@
                     <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
                 </div>
 
+                <div class="col-md-3">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="number" name="mobile" class="form-control" placeholder="Mobile Number">
+                </div>
                 <div class="col-md-4">
                     <label class="form-label">Date of Birth</label>
                     <input type="date" name="dob" class="form-control" required>
@@ -48,7 +52,7 @@
                 <div class="row g-3 align-items-end border p-3 rounded mb-3 address-block">
                     <div class="col-md-2">
                         <label class="form-label">Type</label>
-                        <select name="addresses[0][address_type]" class="form-select" required>
+                        <select name="addresses[0][addresstype_xid]" class="form-select" required>
                             <option value="">-- Select Address Type --</option>
                             @foreach ($addressTypes as $type)
                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -110,18 +114,15 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
     <script>
         let addressIndex = 1;
 
-        // Retrieve all currently selected address type IDs
         function getSelectedTypes() {
             return Array.from(document.querySelectorAll('[name^="addresses"][name$="[address_type]"]'))
                 .map(select => select.value)
-                .filter(Boolean); // filters out empty values
+                .filter(Boolean);
         }
 
-        // Refresh options for each address type dropdown based on current selections
         function updateAllTypeOptions() {
             const allOptions = @json($addressTypes);
             const selected = getSelectedTypes();
@@ -129,7 +130,6 @@
             document.querySelectorAll('[name^="addresses"][name$="[address_type]"]').forEach(select => {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">-- Select Address Type --</option>';
-
                 allOptions.forEach(type => {
                     if (!selected.includes(type.id.toString()) || currentValue === type.id.toString()) {
                         const option = new Option(type.name, type.id);
@@ -142,7 +142,6 @@
             });
         }
 
-        // Handle Add Address button click
         document.getElementById('add-address').addEventListener('click', () => {
             const selected = getSelectedTypes();
             const maxAllowed = {{ count($addressTypes) }};
@@ -156,6 +155,7 @@
             const originalBlock = document.querySelector('.address-block');
             const newBlock = originalBlock.cloneNode(true);
 
+            // Update names and reset values
             newBlock.querySelectorAll('input, select').forEach(element => {
                 const oldName = element.getAttribute('name');
                 if (oldName) {
@@ -165,6 +165,16 @@
 
                 if (element.tagName === 'SELECT') {
                     element.selectedIndex = 0;
+
+                    // IMPORTANT: Update data-index for country, state, and city selects
+                    if (
+                        element.classList.contains('country-select') ||
+                        element.classList.contains('state-select') ||
+                        element.classList.contains('city-select')
+                    ) {
+                        element.setAttribute('data-index', addressIndex);
+                    }
+
                 } else if (element.type === 'text') {
                     element.value = '';
                 } else if (element.type === 'checkbox') {
@@ -177,13 +187,15 @@
             updateAllTypeOptions();
         });
 
-        // Handle type selection change and refresh other dropdowns
+        // When address type changes
         document.addEventListener('change', function(e) {
             if (e.target.matches('[name^="addresses"][name$="[address_type]"]')) {
                 updateAllTypeOptions();
             }
         });
     </script>
+
+
     <script>
         $(document).ready(function() {
             $('form').on('submit', function(e) {
@@ -284,65 +296,76 @@
                 });
             }
 
-            $('#user-form').validate({
+            // $('#user-form').validate({
+            $('#user-form').on('submit', function(e) {
+
+                e.preventDefault();
+
                 ignore: [],
-                rules: {
-                    first_name: {
-                        required: true
-                    },
-                    last_name: {
-                        required: true
-                    },
-                    dob: {
-                        required: true,
-                        date: true
-                    },
-                    gender: {
-                        required: true
-                    }
-                },
-                messages: {
-                    first_name: "First name is required",
-                    last_name: "Last name is required",
-                    dob: "Date of birth is required",
-                    gender: "Gender is required"
-                },
-                submitHandler: function(form) {
-                    let primaryCount = $('[name^="addresses"][name$="[is_primary]"]:checked').length;
-                    if (primaryCount > 1) {
-                        toastr.error("Only one address can be marked as primary.");
-                        return false;
-                    }
-
-                    let formData = new FormData(form);
-
-                    $.ajax({
-                        url: "{{ route('users.store') }}",
-                        type: "POST",
-                        data: formData,
-                        contentType: false,
-                        processData: false,
-                        success: function() {
-                            toastr.success('User created successfully!');
-                            setTimeout(() => {
-                                
-                                window.location.href = "/users";
-                            }, 1500);
+                    rules: {
+                        first_name: {
+                            required: true
                         },
-                        error: function(xhr) {
-                            if (xhr.status === 422) {
-                                let errors = xhr.responseJSON.errors;
-                                Object.values(errors).forEach(function(messages) {
-                                    messages.forEach(function(msg) {
-                                        toastr.error(msg);
-                                    });
-                                });
-                            } else {
-                                toastr.error('Something went wrong.');
-                            }
+                        last_name: {
+                            required: true
+                        },
+                        dob: {
+                            required: true,
+                        },
+                        gender: {
+                            required: true
                         }
-                    });
-                }
+                    },
+                    messages: {
+                        first_name: "First name is required",
+                        last_name: "Last name is required",
+                        dob: "Date of birth is required",
+                        gender: "Gender is required"
+                    },
+                    submitHandler: function(form) {
+                        let primaryCount = $('[name^="addresses"][name$="[is_primary]"]:checked').length;
+                        if (primaryCount > 1) {
+                            toastr.error("Only one address can be marked as primary.");
+                            return false;
+                        }
+
+                        let formData = new FormData(form);
+
+                        $.ajax({
+                            url: "{{ route('users.store') }}",
+                            type: "POST",
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            success: function(data) {
+                                if (data.status == 201) {
+                                    toastr.success(data.message);
+                                    setTimeout(() => {
+                                        window.location.href =
+                                            "{{ route('users.list') }}";
+                                    }, 1500);
+                                } else {
+                                    toastr.error(data.message ||
+                                        'An unexpected error occurred!');
+                                }
+                            }
+                            error: function(xhr) {
+                                if (xhr.status === 422) {
+                                    let errors = xhr.responseJSON.errors;
+                                    Object.values(errors).forEach(function(messages) {
+                                        messages.forEach(function(msg) {
+                                            toastr.error(msg);
+                                        });
+                                    });
+                                } else {
+                                    toastr.error('Something went wrong.');
+                                }
+                            }
+                        });
+                    }
             });
 
             $('#add-address').on('click', function() {

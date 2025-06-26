@@ -16,8 +16,14 @@ class StatesTableSeeder extends Seeder
     public function run()
     {
          DB::table('states')->insert([
-            ['id' => 1, 'name' => 'Maharashtra', 'country_xid' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'California', 'country_xid' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Maharashtra', 'country_xid' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Karnataka', 'country_xid' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Delhi', 'country_xid' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Gujarat', 'country_xid' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'California', 'country_xid' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Texas', 'country_xid' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'New York', 'country_xid' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Florida', 'country_xid' => 2, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }
