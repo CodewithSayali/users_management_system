@@ -1,24 +1,28 @@
 $(document).ready(function () {
-    let addressIndex = {{$user->addresses->count() }};
-if ($('.address-block').length > 1) {
-        $(this).closest('.address-block').remove();
-        updateAllTypeOptions();
-    } else {
-        toastr.warning("At least one address is required.");
-    }
-    // Function to fetch selected address types
+    let addressIndex = window.addressIndex;
+
+    // ✅ Age Validation Rule
+    $.validator.addMethod("minAge", function (value, element, min) {
+        var today = new Date();
+        var birthDate = new Date(value);
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return this.optional(element) || age >= min;
+    }, "You must be at least {0} years old");
+
+    // ✅ Get Selected Address Types
     function getSelectedTypes() {
-        return $('[name^="addresses"][name$="[addresstype_xid]"]')
-            .map(function () {
-                return $(this).val();
-            })
-            .get()
-            .filter(Boolean);
+        return $('[name^="addresses"][name$="[addresstype_xid]"]').map(function () {
+            return $(this).val();
+        }).get().filter(Boolean);
     }
 
-    // Function to update dropdown options to avoid duplicates
+    // ✅ Update All Address Type Options to Prevent Duplicate Selection
     function updateAllTypeOptions() {
-        const allOptions = @json($addressTypes);
+        const allOptions = window.allOptions;
         const selected = getSelectedTypes();
 
         $('[name^="addresses"][name$="[addresstype_xid]"]').each(function () {
@@ -26,14 +30,14 @@ if ($('.address-block').length > 1) {
             $(this).html('<option value="">-- Select Address Type --</option>');
             allOptions.forEach(type => {
                 if (!selected.includes(type.id.toString()) || currentValue === type.id.toString()) {
-                    const selectedAttr = type.id.toString() === currentValue ? 'selected' : '';
+                    const selectedAttr = (type.id.toString() === currentValue) ? 'selected' : '';
                     $(this).append(`<option value="${type.id}" ${selectedAttr}>${type.name}</option>`);
                 }
             });
         });
     }
 
-    // Function to attach validation rules to new fields
+    // ✅ Add Validation Rules for Dynamic Address Fields
     function addAddressValidationRules() {
         $('[name^="addresses"][name$="[addresstype_xid]"]').rules('add', { required: true });
         $('[name^="addresses"][name$="[country]"]').rules('add', { required: true });
@@ -41,94 +45,67 @@ if ($('.address-block').length > 1) {
         $('[name^="addresses"][name$="[city]"]').rules('add', { required: true });
     }
 
-    // Add Address button handler
-    $('#add-address').on('click', function () {
-        const selected = getSelectedTypes();
-        const maxAllowed = @json($addressTypes).length;
+    // ❌ REMOVE BUTTON LOGIC REMOVED
 
-        if (selected.length >= maxAllowed) {
-            alert("All address types have already been selected.");
-            return;
-        }
-
-        const $original = $('.address-block').first();
-        const $clone = $original.clone();
-
-        $clone.find('input, select').each(function () {
-            let name = $(this).attr('name');
-            if (name) {
-                name = name.replace(/\[\d+\]/, `[${addressIndex}]`);
-                $(this).attr('name', name);
-            }
-
-            if ($(this).is('select')) {
-                $(this).val('');
-            } else if ($(this).is(':checkbox')) {
-                $(this).prop('checked', false);
-            } else {
-                $(this).val('');
-            }
-        });
-
-        $('#address-wrapper').append($clone);
-        addressIndex++;
-        updateAllTypeOptions();
-        addAddressValidationRules();
-    });
-
-    // Update address types on change
+    // ✅ Prevent Duplicate Type Selection
     $(document).on('change', '[name^="addresses"][name$="[addresstype_xid]"]', updateAllTypeOptions);
 
-    // Populate states when country changes
+    // ✅ Populate States on Country Change
     $(document).on('change', '[name^="addresses"][name$="[country]"]', function () {
         const countryId = $(this).val();
-        const name = $(this).attr('name');
-        const index = name.match(/\[(\d+)\]/)[1];
+        const index = $(this).attr('name').match(/\[(\d+)\]/)[1];
         const $state = $(`[name="addresses[${index}][state]"]`);
         $state.html('<option>Loading...</option>');
 
         $.get(`/get-states/${countryId}`, function (data) {
             $state.html('<option value="">-- Select State --</option>');
-            data.forEach(state => $state.append(`<option value="${state.id}">${state.name}</option>`));
+            data.forEach(state => {
+                $state.append(`<option value="${state.id}">${state.name}</option>`);
+            });
         });
     });
 
-    // Populate cities when state changes
+    // ✅ Populate Cities on State Change
     $(document).on('change', '[name^="addresses"][name$="[state]"]', function () {
         const stateId = $(this).val();
-        const name = $(this).attr('name');
-        const index = name.match(/\[(\d+)\]/)[1];
+        const index = $(this).attr('name').match(/\[(\d+)\]/)[1];
         const $city = $(`[name="addresses[${index}][city]"]`);
         $city.html('<option>Loading...</option>');
 
         $.get(`/get-cities/${stateId}`, function (data) {
             $city.html('<option value="">-- Select City --</option>');
-            data.forEach(city => $city.append(`<option value="${city.id}">${city.name}</option>`));
+            data.forEach(city => {
+                $city.append(`<option value="${city.id}">${city.name}</option>`);
+            });
         });
     });
 
-    // Validate form and submit
+    // ✅ Validate Form
     $('#user-edit-form').validate({
+        ignore: [],
         rules: {
-            first_name: 'required',
-            last_name: 'required',
-            dob: 'required',
-            gender: 'required',
-            'mobile': {
+            first_name: { required: true },
+            last_name: { required: true },
+            dob: { required: true, minAge: 12 },
+            gender: { required: true },
+            mobile: {
                 digits: true,
                 minlength: 10,
                 maxlength: 10
             }
         },
         messages: {
-            first_name: 'First name is required',
-            last_name: 'Last name is required',
-            dob: 'Date of birth is required',
-            gender: 'Gender is required',
+            first_name:  { required: "Please enter a first name" },
+            last_name: { required: "Please enter a last name" },
+            dob: {
+                required: "Date of birth is required",
+                minAge: "You must be at least 12 years old"
+            },
+            gender: { required: "Please select gender" },
             mobile: {
-                digits: 'Only numbers allowed',
-                minlength: 'Mobile number must be 10 digits',
-                maxlength: 'Mobile number must be 10 digits'
+                digits: "Only numbers allowed",
+                minlength: "Must be 10 digits",
+                maxlength: "Must be 10 digits"
             }
         },
         submitHandler: function (form) {
@@ -139,37 +116,39 @@ if ($('.address-block').length > 1) {
             }
 
             let formData = new FormData(form);
-            formData.append('_method', 'PUT');
+            // console.log(formData);
+            // formData.append('_method', 'PUT');
 
             $.ajax({
-                url: "{{ route('users.update', $user->id) }}",
-                type: 'POST',
+                url: window.updateUrl,
+                method: 'POST',
                 data: formData,
-                processData: false,
                 contentType: false,
+                processData: false,
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function (response) {
                     toastr.success(response.message);
                     setTimeout(() => {
-                        window.location.href = "{{ route('users.list') }}";
+                        window.location.href = '/users-list';
                     }, 1500);
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function (field, messages) {
-                            messages.forEach(msg => toastr.error(msg));
-                        });
+                        const errors = xhr.responseJSON.errors;
+                        Object.values(errors).flat().forEach(msg => toastr.error(msg));
                     } else {
                         toastr.error("Something went wrong. Please try again.");
                     }
                 }
             });
+
+            return false;
         }
     });
 
+    // ✅ Initialize Dropdown Options and Validation
     updateAllTypeOptions();
     addAddressValidationRules();
 });

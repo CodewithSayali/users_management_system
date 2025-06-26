@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
         StatesTableSeeder::class,
         CitiesTableSeeder::class,
         AddressTypeTableSeeder::class,
+        UserSeeder::class,
+        AddressSeeder::class,
         ]);
     }
 }

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class Usercontroller extends Controller
 {
-    public function index()
+    public function createUser()
     {
         $addressTypes = Addresstype::all();
         $countries = Country::all();
@@ -120,28 +120,30 @@ class Usercontroller extends Controller
     return view('users_edit', compact('user', 'addressTypes', 'countries'));
 }
 
+
+
+
+
+
 public function update(Request $request, $id)
 {
-    // 1️⃣ Validate the user fields
     $validated = $request->validate([
-        'first_name'           => 'required|string|max:255',
-        'last_name'            => 'required|string|max:255',
-        'dob'                  => 'required|date',
-        'gender'               => 'required|in:Male,Female',
-        'addresses'            => 'required|array',
-        'addresses.*.city'     => 'required|integer|exists:cities,id',
-        'addresses.*.state'    => 'required|integer|exists:states,id',
-        'addresses.*.country'  => 'required|integer|exists:countries,id',
+        'first_name' => 'required|string|max:255',
+        'last_name'  => 'required|string|max:255',
+        'dob'        => 'required|date',
+        'gender'     => 'required|in:Male,Female',
+        'addresses'  => 'required|array',
+        'addresses.*.addresstype_xid' => 'required|integer',
+        'addresses.*.city'    => 'required|integer|exists:cities,id',
+        'addresses.*.state'   => 'required|integer|exists:states,id',
+        'addresses.*.country' => 'required|integer|exists:countries,id',
     ]);
 
-    // 2️⃣ Find the user
     $user = User::findOrFail($id);
 
-    // 3️⃣ Gender mapping
     $genderMap = ['Male' => 1, 'Female' => 2];
     $gender = $genderMap[$request->gender] ?? 3;
 
-    // 4️⃣ Update user details
     $user->update([
         'first_name' => $request->first_name,
         'last_name'  => $request->last_name,
@@ -150,28 +152,50 @@ public function update(Request $request, $id)
         'gender'     => $gender,
     ]);
 
-    // 5️⃣ Delete old addresses
-    $user->addresses()->delete();
+    $existingAddresses = $user->addresses()->get()->keyBy('id');
+    $submittedIds = [];
 
-    // 6️⃣ Create new addresses
     foreach ($request->addresses as $address) {
-        $user->addresses()->create([
-            'addresstype_xid' => $address['addresstype_xid'], 
-            'door_street'     => $address['door_street'] ?? null,
-            'landmark'        => $address['landmark'] ?? null,
-            'city_xid'        => $address['city'],          
-            'state_xid'       => $address['state'],     
-            'country_xid'     => $address['country'],       
-            'is_primary'      => !empty($address['is_primary']) ? 1 : 0,
-        ]);
+        if (!empty($address['id']) && isset($existingAddresses[$address['id']])) {
+            $existing = $existingAddresses[$address['id']];
+            $existing->update([
+                'addresstype_xid' => $address['addresstype_xid'],
+                'door_street'     => $address['door_street'] ?? null,
+                'landmark'        => $address['landmark'] ?? null,
+                'city_xid'        => $address['city'],
+                'state_xid'       => $address['state'],
+                'country_xid'     => $address['country'],
+                'is_primary'      => !empty($address['is_primary']) ? 1 : 0,
+            ]);
+            $submittedIds[] = $address['id'];
+        } else {
+            $user->addresses()->create([
+                'addresstype_xid' => $address['addresstype_xid'],
+                'door_street'     => $address['door_street'] ?? null,
+                'landmark'        => $address['landmark'] ?? null,
+                'city_xid'        => $address['city'],
+                'state_xid'       => $address['state'],
+                'country_xid'     => $address['country'],
+                'is_primary'      => !empty($address['is_primary']) ? 1 : 0,
+            ]);
+        }
     }
 
-    // ✅ Done
+    $idsToDelete = $existingAddresses->keys()->diff($submittedIds);
+    if ($idsToDelete->isNotEmpty()) {
+        $user->addresses()->whereIn('id', $idsToDelete)->delete();
+    }
+
     return response()->json([
-                'status' => 200,
-                'message' => 'User updated successfully',
-            ]);
+        'status'  => 200,
+        'message' => 'User updated successfully',
+    ]);
 }
+
+
+
+
+
 
 public function destroy($id)
 {

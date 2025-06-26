@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Addresstype;
 use App\Models\City;
 use App\Models\States;
 class Address extends Model
 {
     protected $table='addresses';
+    use SoftDeletes;
+
     use HasFactory;
 
     protected $fillable = [
@@ -30,6 +33,10 @@ class Address extends Model
 public function addressType()
 {
     return $this->belongsTo(Addresstype::class, 'addresstype_xid');
+}
+public function country()
+ {
+        return $this->belongsTo(Country::class, 'country_xid');
 }
 public function state()
 {

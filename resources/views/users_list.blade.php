@@ -20,7 +20,7 @@
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center">
             <h3>Users List</h3>
-            <a href="{{ route('users.index') }}" class="btn btn-success">Add New User</a>
+            <a href="{{ route('users.create') }}" class="btn btn-success">Add New User</a>
         </div>
         <div class="table-responsive mt-3">
             <table id="userTable" class="table table-bordered table-hover">
@@ -58,10 +58,11 @@
         </div>
     </div>
 
-    <!-- Scripts for jQuery, DataTables, and Bootstrap JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoBz1HI4SIXTYdOeA+N+CmZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -96,15 +97,15 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message);
+                            toastr.success(response.message);
                             // Remove the row from DataTable
                             $('#userTable').DataTable().row(row).remove().draw();
                         } else {
-                            alert("Failed to delete user.");
+                            toastr.success("Failed to delete user.");
                         }
                     },
                     error: function (xhr) {
-                        alert("An error occurred while deleting the user.");
+                        toastr.success("An error occurred while deleting the user.");
                     }
                 });
             }

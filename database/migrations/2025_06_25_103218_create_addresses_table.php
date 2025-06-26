@@ -24,6 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('state_xid');
             $table->tinyInteger('is_primary')->default(0) ->comment('1: Primary, 0: Not Primary');
             $table->timestamps();
+            $table->softDeletes();
             $table->foreign('user_xid')->references('id')->on('users')->cascadeOnDelete();
             $table->foreign('addresstype_xid')->references('id')->on('address_types')->cascadeOnDelete();
             $table->foreign('city_xid')->references('id')->on('cities')->cascadeOnDelete();
