@@ -146,7 +146,7 @@ $(document).ready(function () {
         submitHandler: function (form) {
             const primaryCount = $('[name^="addresses"][name$="[is_primary]"]:checked').length;
             if (primaryCount !== 1) {
-                toastr.error("Exactly one address must be marked as primary.");
+                toastr.error("Please select primary address");
                 return false;
             }
 
@@ -187,7 +187,7 @@ $(document).ready(function () {
         const totalBlocks = $('.address-block').length;
         if (totalBlocks > 1) {
             $(this).closest('.address-block').remove();
-            updateAllTypeOptions(); // Re-enable the removed type in other dropdowns
+            updateAllTypeOptions(); 
         } else {
             toastr.warning("At least one address is required.");
         }

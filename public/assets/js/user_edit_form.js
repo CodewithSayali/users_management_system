@@ -1,7 +1,6 @@
 $(document).ready(function () {
     let addressIndex = window.addressIndex;
 
-    // ✅ Age Validation Rule
     $.validator.addMethod("minAge", function (value, element, min) {
         var today = new Date();
         var birthDate = new Date(value);
@@ -13,14 +12,12 @@ $(document).ready(function () {
         return this.optional(element) || age >= min;
     }, "You must be at least {0} years old");
 
-    // ✅ Get Selected Address Types
     function getSelectedTypes() {
         return $('[name^="addresses"][name$="[addresstype_xid]"]').map(function () {
             return $(this).val();
         }).get().filter(Boolean);
     }
 
-    // ✅ Update All Address Type Options to Prevent Duplicate Selection
     function updateAllTypeOptions() {
         const allOptions = window.allOptions;
         const selected = getSelectedTypes();
@@ -37,7 +34,6 @@ $(document).ready(function () {
         });
     }
 
-    // ✅ Add Validation Rules for Dynamic Address Fields
     function addAddressValidationRules() {
         $('[name^="addresses"][name$="[addresstype_xid]"]').rules('add', { required: true });
         $('[name^="addresses"][name$="[country]"]').rules('add', { required: true });
@@ -45,12 +41,9 @@ $(document).ready(function () {
         $('[name^="addresses"][name$="[city]"]').rules('add', { required: true });
     }
 
-    // ❌ REMOVE BUTTON LOGIC REMOVED
 
-    // ✅ Prevent Duplicate Type Selection
     $(document).on('change', '[name^="addresses"][name$="[addresstype_xid]"]', updateAllTypeOptions);
 
-    // ✅ Populate States on Country Change
     $(document).on('change', '[name^="addresses"][name$="[country]"]', function () {
         const countryId = $(this).val();
         const index = $(this).attr('name').match(/\[(\d+)\]/)[1];
@@ -65,7 +58,6 @@ $(document).ready(function () {
         });
     });
 
-    // ✅ Populate Cities on State Change
     $(document).on('change', '[name^="addresses"][name$="[state]"]', function () {
         const stateId = $(this).val();
         const index = $(this).attr('name').match(/\[(\d+)\]/)[1];
@@ -80,7 +72,6 @@ $(document).ready(function () {
         });
     });
 
-    // ✅ Validate Form
     $('#user-edit-form').validate({
         ignore: [],
         rules: {
@@ -111,13 +102,12 @@ $(document).ready(function () {
         submitHandler: function (form) {
             const primaryCount = $('[name^="addresses"][name$="[is_primary]"]:checked').length;
             if (primaryCount !== 1) {
-                toastr.error("Exactly one address must be marked as primary.");
+                toastr.error("Please select primary address");
                 return false;
             }
 
             let formData = new FormData(form);
-            // console.log(formData);
-            // formData.append('_method', 'PUT');
+         
 
             $.ajax({
                 url: window.updateUrl,
@@ -148,7 +138,6 @@ $(document).ready(function () {
         }
     });
 
-    // ✅ Initialize Dropdown Options and Validation
     updateAllTypeOptions();
     addAddressValidationRules();
 });

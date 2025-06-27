@@ -30,7 +30,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Mobile Number</label>
-                    <input type="number" name="mobile" class="form-control" pattern="\d*" placeholder="Mobile Number">
+                    <input type="number" name="mobile" class="form-control" pattern="\d*"
+                        placeholder="Mobile Number">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Date of Birth</label>
@@ -42,13 +43,15 @@
                         <option value="">Select Gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+
                     </select>
                 </div>
             </div>
 
             <h5 class="mb-3 mt-4">Addresses</h5>
             <div id="address-wrapper">
-                
+
                 <div class="row g-3 align-items-end border p-3 rounded mb-3 address-block">
                     <div class="col-md-2">
                         <label class="form-label">Type</label>
@@ -104,7 +107,6 @@
         </form>
     </div>
 
-    <!-- JS Plugins -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
