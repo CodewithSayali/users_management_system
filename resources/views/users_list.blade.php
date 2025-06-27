@@ -66,7 +66,6 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize DataTables
             $('#userTable').DataTable({
                 pageLength: 10,
                 lengthChange: true,
@@ -75,7 +74,7 @@
                 columnDefs: [{
                         orderable: false,
                         targets: 6
-                    } // Disables ordering for the Action column
+                    } 
                 ]
             });
         });
@@ -83,7 +82,6 @@
 
    <script>
     $(document).ready(function () {
-        // Handle delete button click
         $('.delete-user').on('click', function () {
             var userId = $(this).data('id');
             var row = $(this).closest('tr');
@@ -98,7 +96,6 @@
                     success: function (response) {
                         if (response.success) {
                             toastr.success(response.message);
-                            // Remove the row from DataTable
                             $('#userTable').DataTable().row(row).remove().draw();
                         } else {
                             toastr.success("Failed to delete user.");
